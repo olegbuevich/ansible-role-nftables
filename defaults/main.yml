@@ -1,0 +1,22 @@
+---
+
+nftables_interface_map: {}
+
+nftables_chain_policy_default:
+  filter:
+    input: drop
+    forward: drop
+    output: drop
+
+nftables_raw_rules_default:
+  nat:
+    prerouting: []
+    input: []
+    output: []
+    postrouting: []
+  filter:
+    input: []
+    forward: []
+    output: []
+
+nftables_vars: {}

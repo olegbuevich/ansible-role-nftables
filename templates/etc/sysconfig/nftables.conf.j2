@@ -1,0 +1,5 @@
+{{ ansible_managed | comment }}
+flush ruleset
+{% for file in nftables_config_files %}
+include "/etc/nftables/{{ file }}"
+{% endfor %}

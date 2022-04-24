@@ -1,0 +1,13 @@
+---
+
+- name: Overlay nftables_raw_rules on top of defaults
+  set_fact:
+    nftables_raw_rules: '{{ nftables_raw_rules_default | combine(config_layer, recursive=True) }}'
+  vars:
+    config_layer: '{{ nftables_raw_rules | default({}) }}'
+
+- name: Overlay nftables_chain_policy on top of defaults
+  set_fact:
+    nftables_chain_policy: '{{ nftables_chain_policy_default | combine(config_layer, recursive=True) }}'
+  vars:
+    config_layer: '{{ nftables_chain_policy | default({}) }}'

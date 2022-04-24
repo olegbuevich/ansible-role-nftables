@@ -1,0 +1,73 @@
+---
+
+- import_tasks: vars.yml
+
+- name: install nftables package
+  yum:
+    name:
+      - nftables
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: set config files list
+  set_fact:
+    nftables_config_files:
+      - ipv4-filter
+      - ipv4-nat
+
+- name: provide configuration files
+  template:
+    src: "etc/nftables/{{ item }}.j2"
+    dest: "/etc/nftables/{{ item }}"
+    mode: 0600
+    owner: root
+    group: root
+    validate: nft --check --file %s
+  with_items:
+    - "{{ nftables_config_files }}"
+  notify:
+    - check nftables rules
+    - reload nftables
+
+- name: provide service configuration
+  template:
+    src: "etc/sysconfig/nftables.conf.j2"
+    dest: "/etc/sysconfig/nftables.conf"
+    mode: 0600
+    owner: root
+    group: root
+    validate: nft --check --file %s
+  notify:
+    - check nftables rules
+    - reload nftables
+
+# TODO disable iptables service
+
+- name: remove iptable_nat kernel module
+  modprobe:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - iptable_filter
+    - iptable_mangle
+    - iptable_nat
+
+- name: disable iptable kernel modules
+  lineinfile:
+    dest: /etc/modprobe.d/disable-iptable-modules.conf
+    line: "install {{ item }} /bin/true"
+    mode: 0644
+    owner: root
+    group: root
+    state: present
+    create: yes
+  with_items:
+    - iptable_filter
+    - iptable_mangle
+    - iptable_nat
+
+- name: ensure nftables service is started and enabled to start at boot
+  service:
+    name: nftables
+    state: started
+    enabled: yes

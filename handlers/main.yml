@@ -1,0 +1,10 @@
+---
+
+- name: check nftables rules
+  command: nft --check --file /etc/sysconfig/nftables.conf
+  changed_when: false
+
+- name: reload nftables
+  service:
+    name: nftables
+    state: reloaded

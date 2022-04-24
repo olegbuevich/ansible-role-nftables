@@ -1,0 +1,63 @@
+#! /usr/sbin/nft -f
+{{ ansible_managed | comment }}
+
+{% for var in nftables_vars[item] %}
+define {{ var }} = {
+{%   for value in nftables_vars[item][var] | sort %}
+  {{ value }}{% if not loop.last %},{% endif %}{{''}}
+{%   endfor %}
+}
+{% endfor %}
+
+table filter {
+  chain input {
+    type filter hook input priority 0; policy {{ nftables_chain_policy.filter.input }};
+    ct state vmap {
+      established : accept,
+      related : accept,
+      invalid : drop
+    }
+    iifname "lo" accept
+    ip saddr 127.0.0.0/8 drop
+    iifname vmap {
+{% for interface in ansible_interfaces | difference(["lo"]) | sort %}
+      {{ interface }} : {% if interface in nftables_interface_map.input %}{{ nftables_interface_map.input[interface] }}{% else %}drop{% endif %}{% if not loop.last %},{% endif %}{{''}}
+{% endfor %}
+    }
+  }
+  chain forward {
+    type filter hook forward priority 0; policy {{ nftables_chain_policy.filter.forward }};
+    ct state vmap {
+      established : accept,
+      related : accept,
+      invalid : drop
+    }
+    iifname vmap {
+{% for interface in ansible_interfaces | difference(["lo"]) | sort %}
+      {{ interface }} : {% if interface in nftables_interface_map.forward %}{{ nftables_interface_map.forward[interface] }}{% else %}drop{% endif %}{% if not loop.last %},{% endif %}{{''}}
+{% endfor %}
+    }
+  }
+  chain output {
+    type filter hook output priority 0; policy {{ nftables_chain_policy.filter.output }};
+    ct state vmap {
+      established : accept,
+      related : accept,
+      invalid : drop
+    }
+    oifname "lo" accept
+    oifname vmap {
+{% for interface in ansible_interfaces | difference(["lo"]) | sort %}
+      {{ interface }} : {% if interface in nftables_interface_map.output %}{{ nftables_interface_map.output[interface] }}{% else %}drop{% endif %}{% if not loop.last %},{% endif %}{{''}}
+{% endfor %}
+    }
+  }
+{% for chain in nftables_raw_rules.filter | difference(["input", "forward", "output"]) %}
+  chain {{ chain }} {
+{%   for rule in nftables_raw_rules.filter[chain] %}
+    {{ rule }}
+{%   endfor %}
+  }
+{% if not loop.last %}{{''}}{% endif %}
+{% endfor %}
+}
