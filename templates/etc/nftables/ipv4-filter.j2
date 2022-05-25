@@ -10,7 +10,7 @@ define {{ var }} = {
 {% endfor %}
 
 table filter {
-  chain input {
+  chain INPUT {
     type filter hook input priority 0; policy {{ nftables_chain_policy.filter.input }};
     ct state vmap {
       established : accept,
@@ -25,7 +25,7 @@ table filter {
 {% endfor %}
     }
   }
-  chain forward {
+  chain FORWARD {
     type filter hook forward priority 0; policy {{ nftables_chain_policy.filter.forward }};
     ct state vmap {
       established : accept,
@@ -38,7 +38,7 @@ table filter {
 {% endfor %}
     }
   }
-  chain output {
+  chain OUTPUT {
     type filter hook output priority 0; policy {{ nftables_chain_policy.filter.output }};
     ct state vmap {
       established : accept,
