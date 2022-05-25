@@ -1,6 +1,7 @@
 #! /usr/sbin/nft -f
 {{ ansible_managed | comment }}
 
+{% if nftables_vars[item] is defined %}
 {% for var in nftables_vars[item] %}
 define {{ var }} = {
 {%   for value in nftables_vars[item][var] | sort %}
@@ -8,6 +9,7 @@ define {{ var }} = {
 {%   endfor %}
 }
 {% endfor %}
+{% endif %}
 
 table filter {
   chain INPUT {
@@ -27,6 +29,7 @@ table filter {
   }
   chain FORWARD {
     type filter hook forward priority 0; policy {{ nftables_chain_policy.filter.forward }};
+{% if nftables_interface_map.forward is defined %}
     ct state vmap {
       established : accept,
       related : accept,
@@ -37,6 +40,7 @@ table filter {
       {{ interface }} : {% if interface in nftables_interface_map.forward %}{{ nftables_interface_map.forward[interface] }}{% else %}drop{% endif %}{% if not loop.last %},{% endif %}{{''}}
 {% endfor %}
     }
+{% endif %}
   }
   chain OUTPUT {
     type filter hook output priority 0; policy {{ nftables_chain_policy.filter.output }};
