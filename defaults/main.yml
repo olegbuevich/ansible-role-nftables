@@ -20,3 +20,5 @@ nftables_raw_rules_default:
     output: []
 
 nftables_vars: {}
+
+nftables_completely_disable_iptables: false

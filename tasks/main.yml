@@ -41,30 +41,30 @@
     - check nftables rules
     - reload nftables
 
-# TODO disable iptables service
+- block:
+    - name: remove iptables kernel modules
+      modprobe:
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - iptable_filter
+        - iptable_mangle
+        - iptable_nat
 
-- name: remove iptable_nat kernel module
-  modprobe:
-    name: "{{ item }}"
-    state: absent
-  with_items:
-    - iptable_filter
-    - iptable_mangle
-    - iptable_nat
-
-- name: disable iptable kernel modules
-  lineinfile:
-    dest: /etc/modprobe.d/disable-iptable-modules.conf
-    line: "install {{ item }} /bin/true"
-    mode: 0644
-    owner: root
-    group: root
-    state: present
-    create: yes
-  with_items:
-    - iptable_filter
-    - iptable_mangle
-    - iptable_nat
+    - name: disable iptable kernel modules
+      lineinfile:
+        dest: /etc/modprobe.d/disable-iptable-modules.conf
+        line: "install {{ item }} /bin/true"
+        mode: 0644
+        owner: root
+        group: root
+        state: present
+        create: yes
+      with_items:
+        - iptable_filter
+        - iptable_mangle
+        - iptable_nat
+  when: nftables_completely_disable_iptables
 
 - name: ensure nftables service is started and enabled to start at boot
   service:
