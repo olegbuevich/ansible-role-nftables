@@ -1,5 +1,12 @@
 ---
 
+- name: set config files list
+  set_fact:
+    nftables_config_files:
+      - ipv4-filter
+      - ipv4-nat
+  when: nftables_config_files is not defined
+
 - name: Overlay nftables_raw_rules on top of defaults
   set_fact:
     nftables_raw_rules: '{{ nftables_raw_rules_default | combine(config_layer, recursive=True) }}'

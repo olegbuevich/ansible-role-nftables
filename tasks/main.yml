@@ -9,12 +9,6 @@
     state: present
   when: ansible_os_family == 'RedHat'
 
-- name: set config files list
-  set_fact:
-    nftables_config_files:
-      - ipv4-filter
-      - ipv4-nat
-
 - name: provide configuration files
   template:
     src: "etc/nftables/{{ item }}.j2"
