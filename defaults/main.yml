@@ -1,23 +1,24 @@
 ---
 
-nftables_interface_map: {}
+nftables_default_interface_map:
+  input:
+    lo: accept
+  output:
+    lo: accept
 
-nftables_chain_policy_default:
+nftables_default_chain_policy:
   filter:
     input: drop
     forward: drop
     output: drop
 
-nftables_raw_rules_default:
+nftables_default_raw_rules:
   nat:
-    prerouting: []
-    input: []
-    output: []
-    postrouting: []
-  filter:
-    input: []
-    forward: []
-    output: []
+    ansible-prerouting: []
+    ansible-input: []
+    ansible-output: []
+    ansible-postrouting: []
+  filter: {}
 
 nftables_vars: {}
 

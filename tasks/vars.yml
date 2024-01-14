@@ -7,14 +7,20 @@
       - ipv4-nat
   when: nftables_config_files is not defined
 
+- name: Overlay nftables_interface_map on top of defaults
+  set_fact:
+    nftables_interface_map: '{{ nftables_default_interface_map | combine(config_layer, recursive=True) }}'
+  vars:
+    config_layer: '{{ nftables_interface_map | default({}) }}'
+
 - name: Overlay nftables_raw_rules on top of defaults
   set_fact:
-    nftables_raw_rules: '{{ nftables_raw_rules_default | combine(config_layer, recursive=True) }}'
+    nftables_raw_rules: '{{ nftables_default_raw_rules | combine(config_layer, recursive=True) }}'
   vars:
     config_layer: '{{ nftables_raw_rules | default({}) }}'
 
 - name: Overlay nftables_chain_policy on top of defaults
   set_fact:
-    nftables_chain_policy: '{{ nftables_chain_policy_default | combine(config_layer, recursive=True) }}'
+    nftables_chain_policy: '{{ nftables_default_chain_policy | combine(config_layer, recursive=True) }}'
   vars:
     config_layer: '{{ nftables_chain_policy | default({}) }}'

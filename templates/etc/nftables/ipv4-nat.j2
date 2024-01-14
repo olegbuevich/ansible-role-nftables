@@ -2,30 +2,27 @@
 {{ ansible_managed | comment }}
 
 table nat {
-  chain prerouting {
-    type nat hook prerouting priority -100; policy accept;
-{% for rule in nftables_raw_rules.nat.prerouting %}
+  chain ansible-prerouting {
+    type nat hook prerouting priority dstnat; policy accept;
+{% for rule in nftables_raw_rules.nat["ansible-prerouting"] %}
     {{ rule }}
 {% endfor %}
   }
-
-  chain input {
+  chain ansible-input {
     type nat hook input priority 100; policy accept;
-{% for rule in nftables_raw_rules.nat.input %}
+{% for rule in nftables_raw_rules.nat["ansible-input"] %}
     {{ rule }}
 {% endfor %}
   }
-
-  chain output {
+  chain ansible-output {
     type nat hook output priority -100; policy accept;
-{% for rule in nftables_raw_rules.nat.output %}
+{% for rule in nftables_raw_rules.nat["ansible-output"] %}
     {{ rule }}
 {% endfor %}
   }
-
-  chain postrouting {
-    type nat hook postrouting priority 100; policy accept;
-{% for rule in nftables_raw_rules.nat.postrouting %}
+  chain ansible-postrouting {
+    type nat hook postrouting priority srcnat; policy accept;
+{% for rule in nftables_raw_rules.nat["ansible-postrouting"] %}
     {{ rule }}
 {% endfor %}
   }

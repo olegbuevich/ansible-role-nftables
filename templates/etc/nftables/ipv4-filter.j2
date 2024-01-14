@@ -12,51 +12,60 @@ define {{ var }} = {
 {% endif %}
 
 table filter {
-  chain INPUT {
-    type filter hook input priority 0; policy {{ nftables_chain_policy.filter.input }};
+  chain ansible-input {
+    type filter hook input priority filter; policy {{ nftables_chain_policy.filter.input }};
     ct state vmap {
       established : accept,
       related : accept,
       invalid : drop
     }
-    iifname "lo" accept
-    ip saddr 127.0.0.0/8 drop
     iifname vmap {
-{% for interface in ansible_interfaces | difference(["lo"]) | sort %}
-      {{ interface }} : {% if interface in nftables_interface_map.input %}{{ nftables_interface_map.input[interface] }}{% else %}drop{% endif %}{% if not loop.last %},{% endif %}{{''}}
+{% for interface in nftables_interface_map.input | default({}) %}
+      {{ interface }} : {{ nftables_interface_map.input[interface] }}{% if not loop.last %},{% endif %}{{''}}
 {% endfor %}
     }
+    counter
   }
-  chain FORWARD {
-    type filter hook forward priority 0; policy {{ nftables_chain_policy.filter.forward }};
+  chain ansible-forward {
+    type filter hook forward priority filter; policy {{ nftables_chain_policy.filter.forward }};
 {% if nftables_interface_map.forward is defined %}
     ct state vmap {
       established : accept,
       related : accept,
       invalid : drop
     }
+{%   if "iif" in nftables_interface_map.forward %}
     iifname vmap {
-{% for interface in ansible_interfaces | difference(["lo"]) | sort %}
-      {{ interface }} : {% if interface in nftables_interface_map.forward %}{{ nftables_interface_map.forward[interface] }}{% else %}drop{% endif %}{% if not loop.last %},{% endif %}{{''}}
-{% endfor %}
+{%    for interface in nftables_interface_map.forward.iif | default({}) %}
+      {{ interface }} : {{ nftables_interface_map.forward.iif[interface] }}{% if not loop.last %},{% endif %}{{''}}
+{%    endfor %}
     }
+{%   endif %}
+{%   if "oif" in nftables_interface_map.forward %}
+    oifname vmap {
+{%     for interface in nftables_interface_map.forward.oif | default({}) %}
+      {{ interface }} : {{ nftables_interface_map.forward.oif[interface] }}{% if not loop.last %},{% endif %}{{''}}
+{%     endfor %}
+    }
+{%   endif %}
 {% endif %}
+    counter
   }
-  chain OUTPUT {
-    type filter hook output priority 0; policy {{ nftables_chain_policy.filter.output }};
+  chain ansible-output {
+    type filter hook output priority filter; policy {{ nftables_chain_policy.filter.output }};
     ct state vmap {
       established : accept,
       related : accept,
       invalid : drop
     }
-    oifname "lo" accept
     oifname vmap {
-{% for interface in ansible_interfaces | difference(["lo"]) | sort %}
-      {{ interface }} : {% if interface in nftables_interface_map.output %}{{ nftables_interface_map.output[interface] }}{% else %}drop{% endif %}{% if not loop.last %},{% endif %}{{''}}
+{% for interface in nftables_interface_map.output | default({}) %}
+      {{ interface }} : {{ nftables_interface_map.output[interface] }}{% if not loop.last %},{% endif %}{{''}}
 {% endfor %}
     }
+    counter
   }
-{% for chain in nftables_raw_rules.filter | difference(["input", "forward", "output"]) %}
+{% for chain in nftables_raw_rules.filter %}
   chain {{ chain }} {
 {%   for rule in nftables_raw_rules.filter[chain] %}
     {{ rule }}
