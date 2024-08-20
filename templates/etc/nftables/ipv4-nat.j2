@@ -3,7 +3,7 @@
 
 table nat {
   chain ansible-prerouting {
-    type nat hook prerouting priority dstnat; policy accept;
+    type nat hook prerouting priority -100; policy accept;
 {% for rule in nftables_raw_rules.nat["ansible-prerouting"] %}
     {{ rule }}
 {% endfor %}
@@ -21,7 +21,7 @@ table nat {
 {% endfor %}
   }
   chain ansible-postrouting {
-    type nat hook postrouting priority srcnat; policy accept;
+    type nat hook postrouting priority 100; policy accept;
 {% for rule in nftables_raw_rules.nat["ansible-postrouting"] %}
     {{ rule }}
 {% endfor %}
